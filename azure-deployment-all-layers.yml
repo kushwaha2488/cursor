@@ -1,0 +1,111 @@
+parameters:
+- name: regionFullName
+  type: string
+- name: environment
+  type: string
+- name: environmentFullName
+  type: string
+- name: terraformCommand
+  type: string
+- name: buildAgentServicePrincipalName
+  type: string
+- name: variableGroupNormal
+  type: string
+- name: variableGroupSecrets
+  type: string
+
+stages:
+- stage: Stage_${{ parameters.environmentFullName }}_Layer1
+  variables:
+    - name: layerName
+      value: 'layer-1'
+    - name: workingDirectory
+      value: '$(System.DefaultWorkingDirectory)/regions/${{ parameters.regionFullName }}/${{ parameters.environmentFullName }}/$(layerName)'
+    - group: ${{ parameters.variableGroupNormal }}
+    - group: ${{ parameters.variableGroupSecrets }}
+  displayName: ${{ format('{0} {1} {2}', parameters.terraformCommand, lower(parameters.environmentFullName), lower(variables.layerName)) }}
+  dependsOn: Build
+  jobs:
+  - template: azure-deployment-layer.yml
+    parameters:
+      regionFullName: ${{ parameters.regionFullName }}
+      environmentFullName: ${{ parameters.environmentFullName }}
+      layerName: ${{ variables.layerName }}
+      terraformCommand: ${{ parameters.terraformCommand }}
+      buildAgentServicePrincipalName: ${{ parameters.buildAgentServicePrincipalName }}
+
+- stage: Stage_${{ parameters.environmentFullName }}_Layer2
+  variables:
+    - name: layerName
+      value: 'layer-2'
+    - name: workingDirectory
+      value: '$(System.DefaultWorkingDirectory)/regions/${{ parameters.regionFullName }}/${{ parameters.environmentFullName }}/$(layerName)'
+    - group: ${{ parameters.variableGroupNormal }}
+    - group: ${{ parameters.variableGroupSecrets }}
+  displayName: ${{ format('{0} {1} {2}', parameters.terraformCommand, lower(parameters.environmentFullName), lower(variables.layerName)) }}
+  dependsOn: Stage_${{ parameters.environmentFullName }}_Layer1
+  jobs:
+  - template: azure-deployment-layer.yml
+    parameters:
+      regionFullName: ${{ parameters.regionFullName }}
+      environmentFullName: ${{ parameters.environmentFullName }}
+      layerName: ${{ variables.layerName }}
+      terraformCommand: ${{ parameters.terraformCommand }}
+      buildAgentServicePrincipalName: ${{ parameters.buildAgentServicePrincipalName }}
+
+- stage: Stage_${{ parameters.environmentFullName }}_Layer3
+  variables:
+    - name: layerName
+      value: 'layer-3'
+    - name: workingDirectory
+      value: '$(System.DefaultWorkingDirectory)/regions/${{ parameters.regionFullName }}/${{ parameters.environmentFullName }}/$(layerName)'
+    - group: ${{ parameters.variableGroupNormal }}
+    - group: ${{ parameters.variableGroupSecrets }}
+  displayName: ${{ format('{0} {1} {2}', parameters.terraformCommand, lower(parameters.environmentFullName), lower(variables.layerName)) }}
+  dependsOn: Stage_${{ parameters.environmentFullName }}_Layer2
+  jobs:
+  - template: azure-deployment-layer.yml
+    parameters:
+      regionFullName: ${{ parameters.regionFullName }}
+      environmentFullName: ${{ parameters.environmentFullName }}
+      layerName: ${{ variables.layerName }}
+      terraformCommand: ${{ parameters.terraformCommand }}
+      buildAgentServicePrincipalName: ${{ parameters.buildAgentServicePrincipalName }}
+
+- stage: Stage_${{ parameters.environmentFullName }}_Layer3Panos
+  variables:
+    - name: layerName
+      value: 'layer-3-panos'
+    - name: workingDirectory
+      value: '$(System.DefaultWorkingDirectory)/regions/${{ parameters.regionFullName }}/${{ parameters.environmentFullName }}/$(layerName)'
+    - group: ${{ parameters.variableGroupNormal }}
+    - group: ${{ parameters.variableGroupSecrets }}
+  displayName: ${{ format('{0} {1} {2}', parameters.terraformCommand, lower(parameters.environmentFullName), lower(variables.layerName)) }}
+  dependsOn: Stage_${{ parameters.environmentFullName }}_Layer3
+  jobs:
+  - template: azure-deployment-layer.yml
+    parameters:
+      regionFullName: ${{ parameters.regionFullName }}
+      environmentFullName: ${{ parameters.environmentFullName }}
+      layerName: ${{ variables.layerName }}
+      terraformCommand: ${{ parameters.terraformCommand }}
+      buildAgentServicePrincipalName: ${{ parameters.buildAgentServicePrincipalName }}
+
+- stage: Stage_${{ parameters.environmentFullName }}_Layer4
+  variables:
+    - name: layerName
+      value: 'layer-4'
+    - name: workingDirectory
+      value: '$(System.DefaultWorkingDirectory)/regions/${{ parameters.regionFullName }}/${{ parameters.environmentFullName }}/$(layerName)'
+    - group: ${{ parameters.variableGroupNormal }}
+    - group: ${{ parameters.variableGroupSecrets }}
+  displayName: ${{ format('{0} {1} {2}', parameters.terraformCommand, lower(parameters.environmentFullName), lower(variables.layerName)) }}
+  dependsOn: Stage_${{ parameters.environmentFullName }}_Layer3Panos
+  jobs:
+  - template: azure-deployment-layer.yml
+    parameters:
+      regionFullName: ${{ parameters.regionFullName }}
+      environmentFullName: ${{ parameters.environmentFullName }}
+      layerName: ${{ variables.layerName }}
+      terraformCommand: ${{ parameters.terraformCommand }}
+      buildAgentServicePrincipalName: ${{ parameters.buildAgentServicePrincipalName }}
